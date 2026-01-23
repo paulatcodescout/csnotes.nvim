@@ -1,0 +1,30 @@
+Create a neovim plugin for capturing daily notes.  
+
+The plugin should provide the ability to do the following:
+1. Have a keybinding that creates or opens a daily note file named with the current date (e.g., "2023-03-15.md") in a specified directory. 
+2. Automatically insert a header with the current date and a predefined template into the daily note file if it is newly created.
+3. Allow customization of the notes directory and the template through plugin settings.
+4. Provide a command to list all daily notes and open a selected one.
+5. Ensure compatibility with popular Neovim plugins like Telescope for enhanced note searching and navigation.
+6. Include error handling for file operations and user feedback for actions performed.
+7. Write clear documentation on how to install, configure, and use the plugin.
+8. Ensure the plugin is efficient and does not introduce noticeable lag in Neovim's performance.
+9. Follow best practices for Neovim plugin development, including using Lua for implementation.
+10. Include unit tests for core functionalities of the plugin.
+11. Provide a way to back up daily notes to a specified location or cloud service.
+12. Allow tagging of notes and provide a way to filter notes by tags.
+13. Support for markdown formatting and preview within Neovim.
+14. Implement a search functionality within daily notes to find specific content quickly.
+15. Allow integration with external calendar applications to sync daily notes with calendar events.
+16. Provide a way to export daily notes to different formats (e.g., PDF, HTML).
+17. Include a feature to set reminders or notifications for specific notes.
+18. Ensure the plugin is compatible with both Linux and Windows operating systems.
+19. Allow users to share notes directly from Neovim via email or messaging apps.
+20. Regularly update the plugin to fix bugs, add new features, and ensure compatibility with
+    the latest version of Neovim.
+21. Set up a GitHub repository for the plugin to facilitate collaboration and issue tracking.
+22. keybinding to quickly toggle between daily notes and a general notes file.
+23. Provide a way to archive old daily notes automatically after a certain period.
+24. customizable date formats for daily note filenames and headers.
+25. Include a feature to link blocks in notes to related notes for easy navigation.
+

@@ -1,0 +1,287 @@
+*csnotes.txt*  Daily notes management for Neovim
+
+==============================================================================
+CONTENTS                                                    *csnotes-contents*
+
+    1. Introduction ............................ |csnotes-introduction|
+    2. Requirements ............................ |csnotes-requirements|
+    3. Installation ............................ |csnotes-installation|
+    4. Configuration ........................... |csnotes-configuration|
+    5. Commands ................................ |csnotes-commands|
+    6. Mappings ................................ |csnotes-mappings|
+    7. Lua API ................................. |csnotes-api|
+    8. Telescope Integration ................... |csnotes-telescope|
+    9. License ................................. |csnotes-license|
+
+==============================================================================
+INTRODUCTION                                            *csnotes-introduction*
+
+CSNotes.nvim is a powerful Neovim plugin for capturing and managing daily 
+notes with tagging, search, archiving, and Telescope integration.
+
+Features:
+  • Daily notes with customizable templates
+  • General notes file for permanent information
+  • Tag-based organization using #hashtags
+  • Full-text search across all notes
+  • Automatic archiving of old notes
+  • Optional backup system
+  • Telescope integration for enhanced navigation
+
+==============================================================================
+REQUIREMENTS                                            *csnotes-requirements*
+
+  • Neovim >= 0.8.0
+  • telescope.nvim (optional, for enhanced search and navigation)
+
+==============================================================================
+INSTALLATION                                            *csnotes-installation*
+
+Using lazy.nvim: >lua
+    {
+      "paulatcodescout/csnotes.nvim",
+      dependencies = { "nvim-telescope/telescope.nvim" },
+      config = function()
+        require("csnotes").setup()
+      end,
+    }
+<
+
+Using packer.nvim: >lua
+    use {
+      "paulatcodescout/csnotes.nvim",
+      requires = { "nvim-telescope/telescope.nvim" },
+      config = function()
+        require("csnotes").setup()
+      end
+    }
+<
+
+==============================================================================
+CONFIGURATION                                          *csnotes-configuration*
+
+Default configuration: >lua
+    require("csnotes").setup({
+      notes_dir = "~/notes/daily",
+      general_notes_dir = "~/notes/general",
+      archive_dir = "~/notes/archive",
+      date_format = "%Y-%m-%d",
+      header_date_format = "%A, %B %d, %Y",
+      template = [[# {date}
+
+    ## Tasks
+    - [ ] 
+
+    ## Notes
+
+    ## Tags
+    ]],
+      general_notes_file = "general.md",
+      auto_archive_days = 90,
+      mappings = {
+        open_daily = "<leader>nd",
+        open_general = "<leader>ng",
+        toggle_daily_general = "<leader>nt",
+        list_notes = "<leader>nl",
+        search_notes = "<leader>ns",
+        archive_old = "<leader>na",
+      },
+      telescope = {
+        theme = "dropdown",
+        previewer = true,
+      },
+      backup = {
+        enabled = false,
+        dir = "~/notes/backups",
+        on_save = false,
+      },
+    })
+<
+
+                                                            *csnotes.notes_dir*
+notes_dir ~
+    Directory where daily notes are stored.
+    Default: "~/notes/daily"
+
+                                                    *csnotes.general_notes_dir*
+general_notes_dir ~
+    Directory for general notes.
+    Default: "~/notes/general"
+
+                                                          *csnotes.archive_dir*
+archive_dir ~
+    Directory for archived notes.
+    Default: "~/notes/archive"
+
+                                                         *csnotes.date_format*
+date_format ~
+    Date format for filenames (strftime format).
+    Default: "%Y-%m-%d"
+
+                                                  *csnotes.header_date_format*
+header_date_format ~
+    Date format for note headers.
+    Default: "%A, %B %d, %Y"
+
+                                                            *csnotes.template*
+template ~
+    Template for new daily notes. Use {date} as placeholder.
+    Default: See configuration example above.
+
+                                                   *csnotes.auto_archive_days*
+auto_archive_days ~
+    Auto-archive notes older than this many days (0 to disable).
+    Default: 90
+
+                                                            *csnotes.mappings*
+mappings ~
+    Default keybindings (set to false to disable).
+    See |csnotes-mappings| for details.
+
+==============================================================================
+COMMANDS                                                    *csnotes-commands*
+
+:CSNotesDaily                                                  *:CSNotesDaily*
+    Open or create today's daily note.
+
+:CSNotesGeneral                                              *:CSNotesGeneral*
+    Open the general notes file.
+
+:CSNotesToggle                                                *:CSNotesToggle*
+    Toggle between daily and general notes.
+
+:CSNotesList                                                    *:CSNotesList*
+    List all daily notes in a picker.
+
+:CSNotesSearch                                                *:CSNotesSearch*
+    Search across all notes.
+
+:CSNotesTags                                                    *:CSNotesTags*
+    Show all tags and filter notes by tag.
+
+:CSNotesArchive [days]                                        *:CSNotesArchive*
+    Archive notes older than specified days.
+    If no argument is provided, uses the configured auto_archive_days value.
+
+:CSNotesShowArchive                                      *:CSNotesShowArchive*
+    View and restore archived notes.
+
+:CSNotesExport [format]                                      *:CSNotesExport*
+    Export current note (future feature).
+    Formats: pdf, html
+
+==============================================================================
+MAPPINGS                                                    *csnotes-mappings*
+
+Default mappings (can be customized in setup):
+
+    <leader>nd    Open today's daily note
+    <leader>ng    Open general notes
+    <leader>nt    Toggle between daily and general notes
+    <leader>nl    List all daily notes
+    <leader>ns    Search notes
+    <leader>na    Archive old notes
+
+To disable default mappings: >lua
+    require("csnotes").setup({
+      mappings = false,
+    })
+<
+
+==============================================================================
+LUA API                                                          *csnotes-api*
+
+                                                          *csnotes.setup()*
+csnotes.setup({opts})
+    Setup the plugin with custom configuration.
+    
+    Parameters: ~
+        {opts} (table) Configuration options
+
+                                                     *csnotes.open_daily()*
+csnotes.open_daily({opts})
+    Open or create today's daily note.
+    
+    Parameters: ~
+        {opts} (table|nil) Options:
+            • split: "vertical" | "horizontal" | nil
+
+                                                   *csnotes.open_general()*
+csnotes.open_general({opts})
+    Open the general notes file.
+    
+    Parameters: ~
+        {opts} (table|nil) Options:
+            • split: "vertical" | "horizontal" | nil
+
+                                                        *csnotes.toggle()*
+csnotes.toggle()
+    Toggle between daily and general notes.
+
+                                                          *csnotes.list()*
+csnotes.list()
+    List all daily notes in a picker.
+
+                                                        *csnotes.search()*
+csnotes.search()
+    Search across all notes.
+
+                                                          *csnotes.tags()*
+csnotes.tags()
+    Show tag picker.
+
+                                                        *csnotes.by_tag()*
+csnotes.by_tag({tag})
+    Show notes for a specific tag.
+    
+    Parameters: ~
+        {tag} (string) Tag name (without #)
+
+                                                   *csnotes.archive_old()*
+csnotes.archive_old({days})
+    Archive notes older than specified days.
+    
+    Parameters: ~
+        {days} (number|nil) Number of days (uses config if not provided)
+
+                                                  *csnotes.show_archive()*
+csnotes.show_archive()
+    Show archived notes picker.
+
+                                                       *csnotes.restore()*
+csnotes.restore({path})
+    Restore a note from archive.
+    
+    Parameters: ~
+        {path} (string) Path to archived note
+    
+    Returns: ~
+        (boolean, string|nil) success, error
+
+==============================================================================
+TELESCOPE INTEGRATION                                      *csnotes-telescope*
+
+Load the Telescope extension: >lua
+    require("telescope").load_extension("csnotes")
+<
+
+Available Telescope commands:
+
+    :Telescope csnotes daily       Browse daily notes
+    :Telescope csnotes search      Search in notes with preview
+    :Telescope csnotes tags        Browse and filter by tags
+    :Telescope csnotes archive     View archived notes
+
+Telescope keybindings in archive picker:
+    <C-r>    Restore note from archive (insert mode)
+    r        Restore note from archive (normal mode)
+
+==============================================================================
+LICENSE                                                      *csnotes-license*
+
+MIT License
+
+Copyright (c) 2026 CSNotes.nvim Contributors
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
