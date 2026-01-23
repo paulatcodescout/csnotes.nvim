@@ -57,6 +57,42 @@ M.defaults = {
     -- Backup on save
     on_save = false,
   },
+  
+  -- Frontmatter configuration
+  frontmatter = {
+    enabled = true,
+    -- Fields to include in frontmatter
+    fields = {
+      "title",
+      "created",
+      "modified",
+      "tags",
+    },
+    -- Auto-update modified date on save
+    auto_update_modified = true,
+  },
+  
+  -- Template variables
+  template_vars = {
+    -- Additional custom variables for templates
+    -- {date}, {time}, {title}, {tags} are built-in
+  },
+  
+  -- Statistics
+  statistics = {
+    enabled = true,
+    -- Show word count, line count, etc.
+    show_on_open = false,
+  },
+  
+  -- Note linking
+  linking = {
+    enabled = true,
+    -- Style: "wiki" ([[note]]) or "markdown" ([text](note.md))
+    style = "wiki",
+    -- Show backlinks
+    show_backlinks = true,
+  },
 }
 
 --- Current configuration

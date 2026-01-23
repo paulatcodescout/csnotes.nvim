@@ -32,9 +32,29 @@ function M.create_daily_note(path)
   local template = config.get("template")
   local header_date_format = config.get("header_date_format")
   local date_str = utils.format_date(header_date_format, nil)
+  local now = os.time()
   
-  -- Replace {date} placeholder in template
+  -- Replace template placeholders
   local content = template:gsub("{date}", date_str)
+  content = content:gsub("{time}", utils.format_date("%H:%M:%S", now))
+  content = content:gsub("{datetime}", utils.format_date("%Y-%m-%d %H:%M:%S", now))
+  
+  -- Apply custom template variables
+  local template_vars = config.get("template_vars") or {}
+  for key, value in pairs(template_vars) do
+    content = content:gsub("{" .. key .. "}", value)
+  end
+  
+  -- Add frontmatter if enabled
+  if config.get("frontmatter.enabled") then
+    local frontmatter = require("csnotes.frontmatter")
+    local filename = vim.fn.fnamemodify(path, ":t:r")
+    local metadata = frontmatter.generate_metadata(path, {
+      title = filename,
+      tags = {},
+    })
+    content = frontmatter.add_frontmatter_to_template(content, metadata)
+  end
   
   -- Ensure directory exists
   local dir = vim.fn.fnamemodify(path, ":h")

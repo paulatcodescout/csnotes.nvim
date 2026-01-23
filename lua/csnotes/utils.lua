@@ -175,4 +175,143 @@ function M.file_age_days(path)
   return math.floor(age_seconds / 86400) -- 86400 seconds in a day
 end
 
+--- Parse frontmatter from content
+---@param content string
+---@return table|nil frontmatter
+---@return string content_without_frontmatter
+function M.parse_frontmatter(content)
+  -- Check for YAML frontmatter (--- ... ---)
+  local yaml_pattern = "^%-%-%-\n(.-)%-%-%-\n(.*)$"
+  local yaml_match, yaml_body = content:match(yaml_pattern)
+  
+  if yaml_match then
+    local frontmatter = {}
+    for line in yaml_match:gmatch("[^\r\n]+") do
+      local key, value = line:match("^([%w_]+):%s*(.+)$")
+      if key and value then
+        -- Handle arrays
+        if value:match("^%[.-%]$") then
+          local items = {}
+          for item in value:gmatch("%[(.-)%]") do
+            for v in item:gmatch("[^,]+") do
+              table.insert(items, v:match("^%s*(.-)%s*$"))
+            end
+          end
+          frontmatter[key] = items
+        else
+          frontmatter[key] = value:match("^%s*(.-)%s*$")
+        end
+      end
+    end
+    return frontmatter, yaml_body
+  end
+  
+  return nil, content
+end
+
+--- Generate frontmatter string
+---@param metadata table
+---@return string
+function M.generate_frontmatter(metadata)
+  local lines = {"---"}
+  
+  for key, value in pairs(metadata) do
+    if type(value) == "table" then
+      table.insert(lines, string.format("%s: [%s]", key, table.concat(value, ", ")))
+    else
+      table.insert(lines, string.format("%s: %s", key, value))
+    end
+  end
+  
+  table.insert(lines, "---")
+  return table.concat(lines, "\n") .. "\n"
+end
+
+--- Update frontmatter in content
+---@param content string
+---@param updates table
+---@return string
+function M.update_frontmatter(content, updates)
+  local frontmatter, body = M.parse_frontmatter(content)
+  
+  if not frontmatter then
+    frontmatter = {}
+  end
+  
+  -- Merge updates
+  for key, value in pairs(updates) do
+    frontmatter[key] = value
+  end
+  
+  return M.generate_frontmatter(frontmatter) .. body
+end
+
+--- Get file modification time
+---@param path string
+---@return number|nil timestamp
+function M.get_mtime(path)
+  local stat = vim.loop.fs_stat(path)
+  if stat then
+    return stat.mtime.sec
+  end
+  return nil
+end
+
+--- Get file creation time (best effort)
+---@param path string
+---@return number|nil timestamp
+function M.get_ctime(path)
+  local stat = vim.loop.fs_stat(path)
+  if stat then
+    return stat.birthtime and stat.birthtime.sec or stat.ctime.sec
+  end
+  return nil
+end
+
+--- Extract note links from content
+---@param content string
+---@return table Array of linked note names
+function M.extract_links(content)
+  local links = {}
+  
+  -- Match [[note name]] style links
+  for link in content:gmatch("%[%[([^%]]+)%]%]") do
+    if not vim.tbl_contains(links, link) then
+      table.insert(links, link)
+    end
+  end
+  
+  -- Match [text](note.md) style links
+  for link in content:gmatch("%[.-%]%(([^%)]+%.md)%)") do
+    local note_name = link:match("^(.+)%.md$") or link
+    if not vim.tbl_contains(links, note_name) then
+      table.insert(links, note_name)
+    end
+  end
+  
+  return links
+end
+
+--- Count words in content
+---@param content string
+---@return number
+function M.count_words(content)
+  local count = 0
+  for _ in content:gmatch("%S+") do
+    count = count + 1
+  end
+  return count
+end
+
+--- Count lines in content
+---@param content string
+---@return number
+function M.count_lines(content)
+  local count = 0
+  for _ in content:gmatch("[^\r\n]+") do
+    count = count + 1
+  end
+  return count
+end
+
 return M
