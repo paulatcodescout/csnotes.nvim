@@ -6,6 +6,19 @@ local archive = require("csnotes.archive")
 
 local M = {}
 
+-- Lazy-load modules
+local function get_statistics()
+  return require("csnotes.statistics")
+end
+
+local function get_linking()
+  return require("csnotes.linking")
+end
+
+local function get_frontmatter()
+  return require("csnotes.frontmatter")
+end
+
 --- Setup the plugin
 ---@param opts table|nil User configuration
 function M.setup(opts)
@@ -18,9 +31,11 @@ function M.setup(opts)
     end, 1000)
   end
   
-  -- Set up autocommands for backup on save
+  -- Set up autocommands
+  local group = vim.api.nvim_create_augroup("CSNotes", { clear = true })
+  
+  -- Backup on save
   if config.get("backup.enabled") and config.get("backup.on_save") then
-    local group = vim.api.nvim_create_augroup("CSNotesBackup", { clear = true })
     vim.api.nvim_create_autocmd("BufWritePost", {
       group = group,
       pattern = "*.md",
@@ -31,6 +46,41 @@ function M.setup(opts)
         -- Only backup files in the notes directory
         if file_path:find(notes_dir, 1, true) == 1 then
           daily.backup_note(file_path)
+        end
+      end,
+    })
+  end
+  
+  -- Update frontmatter modified time on save
+  if config.get("frontmatter.enabled") and config.get("frontmatter.auto_update_modified") then
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      group = group,
+      pattern = "*.md",
+      callback = function()
+        local file_path = vim.fn.expand("%:p")
+        local notes_dir = vim.fn.expand(config.get("notes_dir"))
+        
+        -- Only update files in the notes directory
+        if file_path:find(notes_dir, 1, true) == 1 then
+          get_frontmatter().update_modified_time(file_path)
+        end
+      end,
+    })
+  end
+  
+  -- Show statistics on open if configured
+  if config.get("statistics.enabled") and config.get("statistics.show_on_open") then
+    vim.api.nvim_create_autocmd("BufEnter", {
+      group = group,
+      pattern = "*.md",
+      callback = function()
+        local file_path = vim.fn.expand("%:p")
+        local notes_dir = vim.fn.expand(config.get("notes_dir"))
+        
+        if file_path:find(notes_dir, 1, true) == 1 then
+          vim.defer_fn(function()
+            get_statistics().show_current_stats()
+          end, 100)
         end
       end,
     })
@@ -104,6 +154,58 @@ end
 ---@return boolean
 function M.has_telescope()
   return pcall(require, "telescope")
+end
+
+--- Show statistics for current note
+function M.show_stats()
+  get_statistics().show_current_stats()
+end
+
+--- Show aggregate statistics
+function M.show_all_stats()
+  get_statistics().show_aggregate_stats()
+end
+
+--- Show backlinks for current note
+function M.show_backlinks()
+  get_linking().show_backlinks()
+end
+
+--- Insert a link to another note
+---@param note_name string|nil
+function M.insert_link(note_name)
+  get_linking().insert_link(note_name)
+end
+
+--- Follow link under cursor
+function M.follow_link()
+  get_linking().follow_link()
+end
+
+--- Show all links (incoming and outgoing)
+function M.show_links()
+  get_linking().show_all_links()
+end
+
+--- Add tags to current note frontmatter
+---@param tags table|string
+function M.add_tags(tags)
+  local current_file = vim.fn.expand("%:p")
+  return get_frontmatter().add_tags(current_file, tags)
+end
+
+--- Remove tags from current note frontmatter
+---@param tags table|string
+function M.remove_tags(tags)
+  local current_file = vim.fn.expand("%:p")
+  return get_frontmatter().remove_tags(current_file, tags)
+end
+
+--- Get metadata for current note
+---@return table|nil
+function M.get_metadata()
+  local current_file = vim.fn.expand("%:p")
+  return get_frontmatter().get_metadata(current_file)
 end
 
 return M

@@ -51,6 +51,57 @@ vim.api.nvim_create_user_command("CSNotesExport", function(opts)
   require("csnotes").export(format)
 end, { nargs = "?", desc = "Export current note (format: pdf, html)" })
 
+vim.api.nvim_create_user_command("CSNotesStats", function(opts)
+  require("csnotes").show_stats()
+end, { desc = "Show statistics for current note" })
+
+vim.api.nvim_create_user_command("CSNotesAllStats", function(opts)
+  require("csnotes").show_all_stats()
+end, { desc = "Show aggregate statistics for all notes" })
+
+vim.api.nvim_create_user_command("CSNotesBacklinks", function(opts)
+  require("csnotes").show_backlinks()
+end, { desc = "Show backlinks to current note" })
+
+vim.api.nvim_create_user_command("CSNotesInsertLink", function(opts)
+  local note_name = opts.args ~= "" and opts.args or nil
+  require("csnotes").insert_link(note_name)
+end, { nargs = "?", desc = "Insert link to another note" })
+
+vim.api.nvim_create_user_command("CSNotesFollowLink", function(opts)
+  require("csnotes").follow_link()
+end, { desc = "Follow link under cursor" })
+
+vim.api.nvim_create_user_command("CSNotesShowLinks", function(opts)
+  require("csnotes").show_links()
+end, { desc = "Show all links for current note" })
+
+vim.api.nvim_create_user_command("CSNotesAddTags", function(opts)
+  if opts.args and opts.args ~= "" then
+    local tags = vim.split(opts.args, ",")
+    for i, tag in ipairs(tags) do
+      tags[i] = vim.trim(tag)
+    end
+    require("csnotes").add_tags(tags)
+    vim.notify("CSNotes: Tags added to frontmatter", vim.log.levels.INFO)
+  else
+    vim.notify("CSNotes: Please specify tags (comma-separated)", vim.log.levels.WARN)
+  end
+end, { nargs = "?", desc = "Add tags to note frontmatter" })
+
+vim.api.nvim_create_user_command("CSNotesRemoveTags", function(opts)
+  if opts.args and opts.args ~= "" then
+    local tags = vim.split(opts.args, ",")
+    for i, tag in ipairs(tags) do
+      tags[i] = vim.trim(tag)
+    end
+    require("csnotes").remove_tags(tags)
+    vim.notify("CSNotes: Tags removed from frontmatter", vim.log.levels.INFO)
+  else
+    vim.notify("CSNotes: Please specify tags (comma-separated)", vim.log.levels.WARN)
+  end
+end, { nargs = "?", desc = "Remove tags from note frontmatter" })
+
 -- Set up default keymappings if not disabled
 vim.defer_fn(function()
   local csnotes = require("csnotes")

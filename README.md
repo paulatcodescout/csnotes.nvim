@@ -4,6 +4,7 @@ A powerful Neovim plugin for capturing and managing daily notes with tagging, se
 
 ## Features
 
+### Core Features
 - 📅 **Daily Notes**: Create or open daily notes with a single keybinding
 - 📝 **General Notes**: Quick access to a general notes file
 - 🏷️ **Tagging System**: Tag your notes with `#tags` and filter by tags
@@ -13,6 +14,13 @@ A powerful Neovim plugin for capturing and managing daily notes with tagging, se
 - 💾 **Backup Support**: Optional automatic backups of your notes
 - ⚙️ **Customizable**: Flexible configuration for directories, date formats, and templates
 - ⚡ **Performance**: Efficient and lightweight, won't slow down Neovim
+
+### Advanced Features (New!)
+- 📋 **Frontmatter Support**: YAML frontmatter with metadata (title, created, modified, tags)
+- 📊 **Statistics**: Track word count, note count, and writing patterns
+- 🔗 **Note Linking**: Wiki-style `[[links]]` with backlinks support
+- 🎨 **Template Variables**: Enhanced template system with custom variables
+- 🔄 **Auto-Update**: Automatic modified timestamp updates
 
 ## Requirements
 
