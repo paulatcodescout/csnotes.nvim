@@ -23,4 +23,5 @@ The plugin should provide the ability to do the following:
 19. Provide a way to archive old daily notes automatically after a certain period.
 20. customizable date formats for daily note filenames and headers.
 21. Add frontmatter support for daily notes to include metadata like tags, created date, and modified date.
+22. Should have a user function that can generate a report of all uncompleted tasks from daily notes.
 

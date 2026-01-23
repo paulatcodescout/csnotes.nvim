@@ -102,6 +102,56 @@ vim.api.nvim_create_user_command("CSNotesRemoveTags", function(opts)
   end
 end, { nargs = "?", desc = "Remove tags from note frontmatter" })
 
+-- Task management commands
+vim.api.nvim_create_user_command("CSNotesTasks", function(opts)
+  require("csnotes").show_tasks({ completed = false, sort_by = "priority" })
+end, { desc = "Show incomplete tasks from all notes" })
+
+vim.api.nvim_create_user_command("CSNotesTasksAll", function(opts)
+  require("csnotes").show_tasks({ sort_by = "priority" })
+end, { desc = "Show all tasks (completed and incomplete)" })
+
+vim.api.nvim_create_user_command("CSNotesTasksCompleted", function(opts)
+  require("csnotes").show_tasks({ completed = true, sort_by = "date" })
+end, { desc = "Show completed tasks" })
+
+vim.api.nvim_create_user_command("CSNotesTasksOverdue", function(opts)
+  local tasks = require("csnotes").get_overdue_tasks()
+  if #tasks == 0 then
+    vim.notify("CSNotes: No overdue tasks", vim.log.levels.INFO)
+  else
+    require("csnotes").show_tasks({ completed = false, sort_by = "due_date" })
+  end
+end, { desc = "Show overdue tasks" })
+
+vim.api.nvim_create_user_command("CSNotesTaskStats", function(opts)
+  local stats = require("csnotes").get_task_stats()
+  local lines = {
+    "📊 Task Statistics",
+    "",
+    string.format("Total Tasks: %d", stats.total),
+    string.format("✓ Completed: %d", stats.completed),
+    string.format("○ Incomplete: %d", stats.incomplete),
+    string.format("⚠️  Overdue: %d", stats.overdue),
+    string.format("📈 Completion Rate: %d%%", stats.completion_rate),
+    "",
+    "By Priority:",
+    string.format("  🔴 High: %d", stats.by_priority.high),
+    string.format("  🟡 Medium: %d", stats.by_priority.medium),
+    string.format("  🟢 Low: %d", stats.by_priority.low),
+  }
+  vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+end, { desc = "Show task statistics" })
+
+vim.api.nvim_create_user_command("CSNotesTaskExport", function(opts)
+  local filepath = opts.args ~= "" and opts.args or vim.fn.expand("~/notes/task-report.md")
+  require("csnotes").export_task_report(filepath, { 
+    completed = false, 
+    sort_by = "priority", 
+    format = "markdown" 
+  })
+end, { nargs = "?", desc = "Export task report to file" })
+
 -- Set up default keymappings if not disabled
 vim.defer_fn(function()
   local csnotes = require("csnotes")
