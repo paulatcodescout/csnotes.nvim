@@ -21,6 +21,7 @@ A powerful Neovim plugin for capturing and managing daily notes with tagging, se
 - 🔗 **Note Linking**: Wiki-style `[[links]]` with backlinks support
 - 🎨 **Template Variables**: Enhanced template system with custom variables
 - 🔄 **Auto-Update**: Automatic modified timestamp updates
+- ✅ **Task Management**: Track todos across notes with priorities, due dates, and reports
 
 ## Requirements
 

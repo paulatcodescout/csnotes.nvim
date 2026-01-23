@@ -19,6 +19,10 @@ local function get_frontmatter()
   return require("csnotes.frontmatter")
 end
 
+local function get_tasks()
+  return require("csnotes.tasks")
+end
+
 --- Setup the plugin
 ---@param opts table|nil User configuration
 function M.setup(opts)
@@ -206,6 +210,44 @@ end
 function M.get_metadata()
   local current_file = vim.fn.expand("%:p")
   return get_frontmatter().get_metadata(current_file)
+end
+
+--- Show task report
+---@param options table|nil Options {completed: bool, sort_by: string}
+function M.show_tasks(options)
+  get_tasks().show_report(options)
+end
+
+--- Get all incomplete tasks
+---@return table
+function M.get_incomplete_tasks()
+  return get_tasks().get_incomplete_tasks()
+end
+
+--- Get all completed tasks
+---@return table
+function M.get_completed_tasks()
+  return get_tasks().get_completed_tasks()
+end
+
+--- Get overdue tasks
+---@return table
+function M.get_overdue_tasks()
+  return get_tasks().get_overdue_tasks()
+end
+
+--- Get task statistics
+---@return table
+function M.get_task_stats()
+  return get_tasks().get_statistics()
+end
+
+--- Export task report to file
+---@param filepath string
+---@param options table|nil
+---@return boolean
+function M.export_task_report(filepath, options)
+  return get_tasks().export_report(filepath, options)
 end
 
 return M
