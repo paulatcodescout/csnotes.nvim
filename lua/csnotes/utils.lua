@@ -274,17 +274,24 @@ end
 function M.extract_links(content)
   local links = {}
   
-  -- Match [[note name]] style links
+  -- Match [[note name|alternative text]] or [[note name]] style links
   for link in content:gmatch("%[%[([^%]]+)%]%]") do
-    if not vim.tbl_contains(links, link) then
-      table.insert(links, link)
+    -- Extract the note name (part before |, or the whole thing if no |)
+    local note_name = link:match("^([^|]+)") or link
+    -- Trim whitespace
+    note_name = note_name:match("^%s*(.-)%s*$")
+    if note_name and note_name ~= "" and not vim.tbl_contains(links, note_name) then
+      table.insert(links, note_name)
     end
   end
   
-  -- Match [text](note.md) style links
-  for link in content:gmatch("%[.-%]%(([^%)]+%.md)%)") do
+  -- Match [text](note.md) or [text](note) style links
+  for link in content:gmatch("%]%(([^%)]+)%)") do
+    -- Remove .md extension if present
     local note_name = link:match("^(.+)%.md$") or link
-    if not vim.tbl_contains(links, note_name) then
+    -- Trim whitespace
+    note_name = note_name:match("^%s*(.-)%s*$")
+    if note_name and note_name ~= "" and not vim.tbl_contains(links, note_name) then
       table.insert(links, note_name)
     end
   end
