@@ -64,13 +64,14 @@ function M.setup(opts)
     vim.api.nvim_create_autocmd("BufWritePre", {
       group = group,
       pattern = "*.md",
-      callback = function()
+      callback = function(args)
         local file_path = vim.fn.expand("%:p")
         local notes_dir = vim.fn.expand(config.get("notes_dir"))
+        local general_dir = vim.fn.expand(config.get("general_notes_dir"))
         
-        -- Only update files in the notes directory
-        if file_path:find(notes_dir, 1, true) == 1 then
-          get_frontmatter().update_modified_time(file_path)
+        -- Only update files in the notes directories
+        if file_path:find(notes_dir, 1, true) == 1 or file_path:find(general_dir, 1, true) == 1 then
+          get_frontmatter().update_modified_time(args.buf)
         end
       end,
     })
