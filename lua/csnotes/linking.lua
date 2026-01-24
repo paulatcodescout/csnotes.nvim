@@ -53,10 +53,13 @@ function M.get_backlinks(note_path)
           if link == note_name or link == note_name .. ".md" then
             -- Find the line where the link appears
             local line_num = 0
+            -- Escape special pattern characters in note_name
+            local escaped_name = note_name:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
             for line in content:gmatch("[^\r\n]+") do
               line_num = line_num + 1
-              if line:find("%[%[" .. note_name .. "%]%]") or 
-                 line:find("%]%(.*" .. note_name .. "%.md%)") then
+              -- Match [[note]], [[note|text]], [text](note), or [text](note.md)
+              if line:find("%[%[" .. escaped_name .. "[|%]]") or 
+                 line:find("%]%(" .. escaped_name .. "%.?m?d?%)") then
                 table.insert(backlinks, {
                   path = note.path,
                   filename = note.filename,
@@ -192,22 +195,37 @@ function M.follow_link()
   local line = vim.api.nvim_get_current_line()
   local col = vim.api.nvim_win_get_cursor(0)[2]
   
-  -- Try to find a wiki-style link [[note]]
+  -- Try to find a wiki-style link [[note|alternative text]] or [[note]]
+  -- Pattern captures everything between [[ and ]]
   local wiki_pattern = "%[%[([^%]]+)%]%]"
-  for note_name in line:gmatch(wiki_pattern) do
-    local start_pos, end_pos = line:find("%[%[" .. note_name:gsub("%-", "%%-") .. "%]%]")
+  for full_match in line:gmatch(wiki_pattern) do
+    -- Escape special characters for pattern matching
+    local escaped_match = full_match:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+    local start_pos, end_pos = line:find("%[%[" .. escaped_match .. "%]%]")
+    
     if start_pos and end_pos and col >= start_pos - 1 and col <= end_pos then
+      -- Extract the note name (part before |, or the whole thing if no |)
+      local note_name = full_match:match("^([^|]+)") or full_match
+      -- Trim whitespace
+      note_name = note_name:match("^%s*(.-)%s*$")
       M.open_linked_note(note_name)
       return
     end
   end
   
-  -- Try to find a markdown-style link [text](note.md)
-  local md_pattern = "%[.-%]%(([^%)]+)%)"
-  for note_file in line:gmatch(md_pattern) do
-    local note_name = note_file:match("^(.+)%.md$") or note_file
-    local start_pos, end_pos = line:find("%[.-%]%(" .. note_file:gsub("%-", "%%-") .. "%)")
+  -- Try to find a markdown-style link [text](note.md) or [text](note)
+  local md_pattern = "%[([^%]]+)%]%(([^%)]+)%)"
+  for display_text, note_file in line:gmatch(md_pattern) do
+    -- Escape special characters for pattern matching
+    local escaped_text = display_text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+    local escaped_file = note_file:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+    local start_pos, end_pos = line:find("%[" .. escaped_text .. "%]%(" .. escaped_file .. "%)")
+    
     if start_pos and end_pos and col >= start_pos - 1 and col <= end_pos then
+      -- Remove .md extension if present
+      local note_name = note_file:match("^(.+)%.md$") or note_file
+      -- Trim whitespace
+      note_name = note_name:match("^%s*(.-)%s*$")
       M.open_linked_note(note_name)
       return
     end
