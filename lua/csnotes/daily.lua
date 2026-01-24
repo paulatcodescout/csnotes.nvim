@@ -110,33 +110,26 @@ function M.open_daily_note(opts)
   end
 end
 
---- Open the general notes file
+--- Open the general notes file (PARA dashboard)
 ---@param opts table|nil Options (split: "vertical"|"horizontal"|nil)
 function M.open_general_notes(opts)
   opts = opts or {}
+  local para = require("csnotes.para")
   local general_dir = utils.expand_path(config.get("general_notes_dir"))
   local filename = config.get("general_notes_file")
   local path = general_dir .. "/" .. filename
-  local is_new = not utils.file_exists(path)
   
-  -- Create the file if it doesn't exist
-  if is_new then
-    local ok, err = utils.mkdir_p(general_dir)
+  -- Ensure PARA structure exists
+  if not utils.file_exists(path) then
+    local ok, err = para.initialize_para()
     if not ok then
-      utils.error("Failed to create general notes directory: " .. (err or "unknown error"))
+      utils.error(err)
       return
     end
-    
-    local content = "# General Notes\n\n"
-    ok, err = utils.write_file(path, content)
-    if not ok then
-      utils.error("Failed to create general notes file: " .. (err or "unknown error"))
-      return
-    end
-    utils.info("Created general notes file")
+    utils.info("Initialized PARA structure")
   end
   
-  -- Open the file
+  -- Open the dashboard
   local cmd = "edit"
   if opts.split == "vertical" then
     cmd = "vsplit"

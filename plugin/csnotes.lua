@@ -152,6 +152,45 @@ vim.api.nvim_create_user_command("CSNotesTaskExport", function(opts)
   })
 end, { nargs = "?", desc = "Export task report to file" })
 
+-- PARA method commands
+vim.api.nvim_create_user_command("CSNotesInitPara", function(opts)
+  local ok, err = require("csnotes").init_para()
+  if ok then
+    vim.notify("CSNotes: PARA structure initialized", vim.log.levels.INFO)
+  else
+    vim.notify("CSNotes: " .. (err or "Failed to initialize PARA"), vim.log.levels.ERROR)
+  end
+end, { desc = "Initialize PARA structure for general notes" })
+
+vim.api.nvim_create_user_command("CSNotesParaPicker", function(opts)
+  require("csnotes").para_picker()
+end, { desc = "Show PARA category picker" })
+
+vim.api.nvim_create_user_command("CSNotesProjects", function(opts)
+  require("csnotes").open_para("projects")
+end, { desc = "Open Projects (PARA)" })
+
+vim.api.nvim_create_user_command("CSNotesAreas", function(opts)
+  require("csnotes").open_para("areas")
+end, { desc = "Open Areas of Responsibility (PARA)" })
+
+vim.api.nvim_create_user_command("CSNotesResources", function(opts)
+  require("csnotes").open_para("resources")
+end, { desc = "Open Resources (PARA)" })
+
+vim.api.nvim_create_user_command("CSNotesParaArchive", function(opts)
+  require("csnotes").open_para("archive")
+end, { desc = "Open Archive (PARA)" })
+
+vim.api.nvim_create_user_command("CSNotesUpdateDashboard", function(opts)
+  local ok = require("csnotes").update_para_dashboard()
+  if ok then
+    vim.notify("CSNotes: Dashboard updated", vim.log.levels.INFO)
+  else
+    vim.notify("CSNotes: Failed to update dashboard", vim.log.levels.ERROR)
+  end
+end, { desc = "Update PARA dashboard" })
+
 -- Set up default keymappings if not disabled
 vim.defer_fn(function()
   local csnotes = require("csnotes")

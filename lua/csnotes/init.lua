@@ -23,6 +23,10 @@ local function get_tasks()
   return require("csnotes.tasks")
 end
 
+local function get_para()
+  return require("csnotes.para")
+end
+
 --- Setup the plugin
 ---@param opts table|nil User configuration
 function M.setup(opts)
@@ -248,6 +252,37 @@ end
 ---@return boolean
 function M.export_task_report(filepath, options)
   return get_tasks().export_report(filepath, options)
+end
+
+--- Initialize PARA structure for general notes
+---@return boolean success
+---@return string|nil error
+function M.init_para()
+  return get_para().initialize_para()
+end
+
+--- Open a PARA category (projects, areas, resources, archive)
+---@param category string
+---@param opts table|nil
+function M.open_para(category, opts)
+  get_para().open_category(category, opts)
+end
+
+--- Show PARA category picker
+function M.para_picker()
+  get_para().show_category_picker()
+end
+
+--- Get PARA statistics
+---@return table
+function M.para_stats()
+  return get_para().get_para_stats()
+end
+
+--- Update PARA dashboard
+---@return boolean success
+function M.update_para_dashboard()
+  return get_para().update_dashboard()
 end
 
 return M
