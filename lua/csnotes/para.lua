@@ -147,7 +147,7 @@ end
 --- Generate dashboard content
 ---@return string
 function M.generate_dashboard()
-  local dashboard = [[# General Notes Dashboard
+  local dashboard = [=[# General Notes Dashboard
 
 > This is your central hub for the PARA (Projects, Areas, Resources, Archive) method.
 
@@ -169,17 +169,17 @@ The PARA method helps organize information into four categories:
 
 ## Recent Activity
 
-]]
+]=]
   
   -- Add links to recent notes in each category
   for _, category in ipairs(M.PARA_CATEGORIES) do
     local file_path = get_para_file_path(category)
     if utils.file_exists(file_path) then
-      dashboard = dashboard .. string.format("- Last updated: [[%s|%s]]\n", category:lower(), category)
+      dashboard = dashboard .. string.format("- [[%s]] - %s\n", category:lower(), category)
     end
   end
   
-  dashboard = dashboard .. [[
+  dashboard = dashboard .. [=[
 
 ## Getting Started
 
@@ -190,7 +190,7 @@ To add a new item:
 
 ---
 
-*Last updated: ]] .. os.date("%Y-%m-%d %H:%M:%S") .. "*\n"
+*Last updated: ]=] .. os.date("%Y-%m-%d %H:%M:%S") .. "*\n"
   
   return dashboard
 end
@@ -209,6 +209,12 @@ end
 ---@param opts table|nil Options (split: "vertical"|"horizontal"|nil)
 function M.open_category(category, opts)
   opts = opts or {}
+  
+  -- Validate input
+  if not category or type(category) ~= "string" or category == "" then
+    utils.error("Invalid category: category must be a non-empty string")
+    return
+  end
   
   -- Normalize category name
   local category_map = {
@@ -259,11 +265,13 @@ function M.get_para_stats()
     if utils.file_exists(file_path) then
       stats.total_categories = stats.total_categories + 1
       local content, err = utils.read_file(file_path)
-      if content then
+      if not content then
+        utils.warn(string.format("Failed to read %s: %s", file_path, err or "unknown error"))
+      else
         stats.categories[category] = {
           word_count = utils.count_words(content),
           line_count = utils.count_lines(content),
-          last_modified = utils.get_mtime(file_path),
+          last_modified = utils.get_mtime(file_path) or os.time(),
         }
       end
     end
