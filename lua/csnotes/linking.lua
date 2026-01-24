@@ -4,6 +4,32 @@ local daily = require("csnotes.daily")
 
 local M = {}
 
+--- Get all notes (daily and general) for backlink searching
+---@return table Array of note paths
+local function get_all_notes()
+  local all_notes = {}
+  
+  -- Get all daily notes
+  local daily_notes = daily.get_all_daily_notes()
+  for _, note in ipairs(daily_notes) do
+    table.insert(all_notes, note)
+  end
+  
+  -- Get all general notes
+  local general_dir = utils.expand_path(config.get("general_notes_dir"))
+  if utils.dir_exists(general_dir) then
+    local general_files = utils.get_files(general_dir, "%.md$")
+    for _, filename in ipairs(general_files) do
+      table.insert(all_notes, {
+        path = general_dir .. "/" .. filename,
+        filename = filename,
+      })
+    end
+  end
+  
+  return all_notes
+end
+
 --- Get all notes that link to the specified note
 ---@param note_path string Path to the note
 ---@return table Array of {path: string, filename: string, line: number, content: string}
@@ -13,7 +39,7 @@ function M.get_backlinks(note_path)
   end
   
   local note_name = vim.fn.fnamemodify(note_path, ":t:r")
-  local notes = daily.get_all_daily_notes()
+  local notes = get_all_notes()
   local backlinks = {}
   
   for _, note in ipairs(notes) do
@@ -193,23 +219,44 @@ end
 --- Open a linked note
 ---@param note_name string Name of the note
 function M.open_linked_note(note_name)
-  local notes_dir = utils.expand_path(config.get("notes_dir"))
-  local note_path = notes_dir .. "/" .. note_name
+  -- Try to find the note in multiple locations
+  local search_dirs = {
+    utils.expand_path(config.get("notes_dir")),
+    utils.expand_path(config.get("general_notes_dir")),
+  }
   
-  -- Try with .md extension if not already included
-  if not note_path:match("%.md$") then
-    note_path = note_path .. ".md"
+  local note_path = nil
+  for _, dir in ipairs(search_dirs) do
+    local candidate = dir .. "/" .. note_name
+    if not candidate:match("%.md$") then
+      candidate = candidate .. ".md"
+    end
+    if utils.file_exists(candidate) then
+      note_path = candidate
+      break
+    end
   end
   
-  if utils.file_exists(note_path) then
+  if note_path then
     vim.cmd("edit " .. vim.fn.fnameescape(note_path))
   else
+    -- Ask where to create the note
     vim.ui.select(
-      {"Create new note", "Cancel"},
-      {prompt = string.format("Note '%s' does not exist", note_name)},
+      {"Daily notes", "General notes", "Cancel"},
+      {prompt = string.format("Note '%s' does not exist. Where to create?", note_name)},
       function(choice)
-        if choice == "Create new note" then
-          vim.cmd("edit " .. vim.fn.fnameescape(note_path))
+        if choice == "Daily notes" then
+          local path = search_dirs[1] .. "/" .. note_name
+          if not path:match("%.md$") then
+            path = path .. ".md"
+          end
+          vim.cmd("edit " .. vim.fn.fnameescape(path))
+        elseif choice == "General notes" then
+          local path = search_dirs[2] .. "/" .. note_name
+          if not path:match("%.md$") then
+            path = path .. ".md"
+          end
+          vim.cmd("edit " .. vim.fn.fnameescape(path))
         end
       end
     )

@@ -24,4 +24,6 @@ The plugin should provide the ability to do the following:
 20. customizable date formats for daily note filenames and headers.
 21. Add frontmatter support for daily notes to include metadata like tags, created date, and modified date.
 22. Should have a user function that can generate a report of all uncompleted tasks from daily notes.
-
+23. All note types should support linking and backlinking between notes.
+24. Set the archive feature to 0 days by default but allow users to customize this setting.
+25. general notes should be broken into multiple files using the PARA (Project, Area, Resource, Archive) method. The general.md file should be a dashboard that links to these files.

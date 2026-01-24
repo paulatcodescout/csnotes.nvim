@@ -32,7 +32,7 @@ M.defaults = {
   general_notes_file = "general.md",
   
   -- Auto-archive notes older than this many days (0 to disable)
-  auto_archive_days = 90,
+  auto_archive_days = 0,
   
   -- Keybindings (set to false to disable default mappings)
   mappings = {
