@@ -48,18 +48,19 @@ function M.add_frontmatter_to_template(template, metadata)
   return utils.generate_frontmatter(metadata) .. template
 end
 
---- Update modified timestamp in file
----@param path string File path
+--- Update modified timestamp in buffer
+---@param bufnr number|nil Buffer number (defaults to current buffer)
 ---@return boolean success
-function M.update_modified_time(path)
+function M.update_modified_time(bufnr)
   if not config.get("frontmatter.enabled") or not config.get("frontmatter.auto_update_modified") then
     return false
   end
   
-  local content, err = utils.read_file(path)
-  if not content then
-    return false
-  end
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  
+  -- Get buffer content instead of reading from file
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local content = table.concat(lines, "\n")
   
   local frontmatter, body = utils.parse_frontmatter(content)
   if not frontmatter then
@@ -69,10 +70,14 @@ function M.update_modified_time(path)
   -- Update modified time
   frontmatter.modified = utils.format_date("%Y-%m-%d %H:%M:%S", os.time())
   
+  -- Update buffer content instead of writing to file
   local updated_content = utils.generate_frontmatter(frontmatter) .. body
-  local ok, write_err = utils.write_file(path, updated_content)
+  local updated_lines = vim.split(updated_content, "\n", { plain = true })
   
-  return ok == true
+  -- Set buffer lines
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, updated_lines)
+  
+  return true
 end
 
 --- Extract metadata from existing note
