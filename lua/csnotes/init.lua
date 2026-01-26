@@ -255,6 +255,12 @@ function M.export_task_report(filepath, options)
   return get_tasks().export_report(filepath, options)
 end
 
+--- Toggle task completion on current line
+---@return boolean success
+function M.toggle_task()
+  return get_tasks().toggle_task()
+end
+
 --- Initialize PARA structure for general notes
 ---@return boolean success
 ---@return string|nil error
