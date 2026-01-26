@@ -100,7 +100,6 @@ require("csnotes").setup({
 
 ## Notes
 
-## Tags
 ]],
   
   -- General notes filename

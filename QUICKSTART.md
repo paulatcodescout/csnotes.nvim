@@ -53,7 +53,6 @@ You'll see a new note with this template:
 
 ## Notes
 
-## Tags
 ```
 
 ### Writing Notes
@@ -75,8 +74,6 @@ Key takeaways:
 - Need to finalize #design before next week
 - #important - Budget approval required
 
-## Tags
-#work #meetings #project-alpha
 ```
 
 ### Using Tags

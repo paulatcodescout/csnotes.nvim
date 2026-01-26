@@ -74,7 +74,6 @@ Default configuration: >lua
 
     ## Notes
 
-    ## Tags
     ]],
       general_notes_file = "general.md",
       auto_archive_days = 90,
