@@ -460,4 +460,62 @@ function M.get_statistics()
   }
 end
 
+--- Toggle task completion status on current line
+---@param bufnr number|nil Buffer number (defaults to current buffer)
+---@param line_num number|nil Line number (defaults to cursor line)
+---@return boolean success Whether a task was found and toggled
+function M.toggle_task_completion(bufnr, line_num)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  line_num = line_num or vim.api.nvim_win_get_cursor(0)[1]
+  
+  -- Get the current line
+  local lines = vim.api.nvim_buf_get_lines(bufnr, line_num - 1, line_num, false)
+  if #lines == 0 then
+    return false
+  end
+  
+  local line = lines[1]
+  
+  -- Check if line contains a task checkbox
+  local new_line
+  if line:match("^(%s*)%-%s+%[%s%]") then
+    -- Incomplete task - mark as complete
+    new_line = line:gsub("^(%s*%-%s+)%[%s%]", "%1[x]")
+  elseif line:match("^(%s*)%-%s+%[[xX]%]") then
+    -- Complete task - mark as incomplete
+    new_line = line:gsub("^(%s*%-%s+)%[[xX]%]", "%1[ ]")
+  else
+    -- Not a task line
+    return false
+  end
+  
+  -- Update the line in buffer
+  vim.api.nvim_buf_set_lines(bufnr, line_num - 1, line_num, false, {new_line})
+  
+  return true
+end
+
+--- Toggle task completion status on current line (with user feedback)
+---@return boolean success
+function M.toggle_task()
+  local success = M.toggle_task_completion()
+  
+  if success then
+    -- Get the updated line to check completion status
+    local line_num = vim.api.nvim_win_get_cursor(0)[1]
+    local lines = vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, false)
+    local line = lines[1]
+    
+    if line:match("%[%s%]") then
+      utils.info("Task marked as incomplete")
+    else
+      utils.info("Task marked as complete ✓")
+    end
+  else
+    utils.warn("No task found on current line")
+  end
+  
+  return success
+end
+
 return M

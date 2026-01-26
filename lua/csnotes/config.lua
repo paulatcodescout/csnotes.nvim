@@ -42,6 +42,7 @@ M.defaults = {
     list_notes = "<leader>nl",
     search_notes = "<leader>ns",
     archive_old = "<leader>na",
+    toggle_task = "<leader>nx",
   },
   
   -- Telescope configuration

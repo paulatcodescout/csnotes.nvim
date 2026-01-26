@@ -152,6 +152,10 @@ vim.api.nvim_create_user_command("CSNotesTaskExport", function(opts)
   })
 end, { nargs = "?", desc = "Export task report to file" })
 
+vim.api.nvim_create_user_command("CSNotesTaskToggle", function(opts)
+  require("csnotes").toggle_task()
+end, { desc = "Toggle task completion on current line" })
+
 -- PARA method commands
 vim.api.nvim_create_user_command("CSNotesInitPara", function(opts)
   local ok, err = require("csnotes").init_para()
@@ -233,6 +237,12 @@ vim.defer_fn(function()
       vim.keymap.set("n", mappings.archive_old, function()
         csnotes.archive_old()
       end, { desc = "Archive old notes" })
+    end
+    
+    if mappings.toggle_task then
+      vim.keymap.set("n", mappings.toggle_task, function()
+        csnotes.toggle_task()
+      end, { desc = "Toggle task completion", buffer = false })
     end
   end
 end, 0)
