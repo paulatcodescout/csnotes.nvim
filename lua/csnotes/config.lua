@@ -25,7 +25,6 @@ M.defaults = {
 
 ## Notes
 
-## Tags
 ]],
   
   -- General notes filename

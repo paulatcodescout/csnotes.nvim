@@ -71,13 +71,13 @@ describe("Linking module", function()
     end)
     
     it("should extract multiple links", function()
-      local content = [[
+      local content = [=[
         Here are some links:
         - [[first-note]]
         - [[second-note|Second Note]]
         - [Third](third-note.md)
         - [Fourth](fourth-note)
-      ]]
+      ]=]
       local links = utils.extract_links(content)
       
       assert.equals(4, #links)
@@ -117,7 +117,7 @@ describe("Linking module", function()
       
       assert.equals(1, #backlinks)
       assert.equals(source_note, backlinks[1].path)
-      assert.is_true(backlinks[1].content:match("target"))
+      assert.is_not_nil(backlinks[1].content:match("target"))
     end)
     
     it("should find backlinks from wiki links with pipe syntax", function()
