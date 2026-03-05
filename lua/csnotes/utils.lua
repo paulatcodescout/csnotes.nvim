@@ -98,6 +98,66 @@ function M.parse_date_from_filename(filename, format)
   return nil
 end
 
+--- Get the start of the week (Monday) for a given timestamp
+---@param timestamp number|nil Unix timestamp (defaults to current time)
+---@return number timestamp of Monday at 00:00:00
+function M.get_week_start(timestamp)
+  timestamp = timestamp or os.time()
+  local date = os.date("*t", timestamp)
+  
+  -- Get day of week (1=Sunday, 2=Monday, ..., 7=Saturday)
+  local wday = date.wday
+  
+  -- Calculate days to subtract to get to Monday
+  local days_to_monday = (wday == 1) and 6 or (wday - 2)
+  
+  -- Get Monday's date
+  local monday = os.time({
+    year = date.year,
+    month = date.month,
+    day = date.day - days_to_monday,
+    hour = 0,
+    min = 0,
+    sec = 0
+  })
+  
+  return monday
+end
+
+--- Get the end of the week (Sunday) for a given timestamp
+---@param timestamp number|nil Unix timestamp (defaults to current time)
+---@return number timestamp of Sunday at 23:59:59
+function M.get_week_end(timestamp)
+  timestamp = timestamp or os.time()
+  local monday = M.get_week_start(timestamp)
+  
+  -- Add 6 days to get Sunday
+  local sunday = monday + (6 * 86400)
+  local date = os.date("*t", sunday)
+  
+  return os.time({
+    year = date.year,
+    month = date.month,
+    day = date.day,
+    hour = 23,
+    min = 59,
+    sec = 59
+  })
+end
+
+--- Format a week range string
+---@param timestamp number|nil Unix timestamp (defaults to current time)
+---@return string e.g., "January 1 - January 7, 2024"
+function M.format_week_range(timestamp)
+  local week_start = M.get_week_start(timestamp)
+  local week_end = M.get_week_end(timestamp)
+  
+  local start_str = os.date("%B %d", week_start)
+  local end_str = os.date("%B %d, %Y", week_end)
+  
+  return start_str .. " - " .. end_str
+end
+
 --- Show an error message
 ---@param msg string
 function M.error(msg)

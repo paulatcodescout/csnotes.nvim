@@ -2,6 +2,9 @@ local M = {}
 
 --- Default configuration
 M.defaults = {
+  -- Note type: "daily" or "weekly"
+  note_type = "weekly",
+  
   -- Directory where notes are stored
   notes_dir = "~/notes/daily",
   
@@ -14,8 +17,14 @@ M.defaults = {
   -- Date format for filenames (using strftime format)
   date_format = "%Y-%m-%d",
   
+  -- Week format for weekly note filenames (e.g., "2024-W01")
+  week_format = "%Y-W%V",
+  
   -- Date format for headers
   header_date_format = "%A, %B %d, %Y",
+  
+  -- Week date format for headers (shows week range)
+  week_header_format = "Week %V, %Y",
   
   -- Template for new daily notes
   template = [[# {date}

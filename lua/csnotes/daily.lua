@@ -3,25 +3,43 @@ local config = require("csnotes.config")
 
 local M = {}
 
---- Get the path for today's daily note
+--- Get the path for today's note (daily or weekly based on config)
 ---@param date_format string|nil Custom date format
 ---@return string
 function M.get_daily_note_path(date_format)
-  date_format = date_format or config.get("date_format")
+  local note_type = config.get("note_type") or "weekly"
   local notes_dir = utils.expand_path(config.get("notes_dir"))
-  local filename = utils.format_date(date_format, nil) .. ".md"
-  return notes_dir .. "/" .. filename
+  
+  if note_type == "weekly" then
+    date_format = date_format or config.get("week_format")
+    local week_start = utils.get_week_start()
+    local filename = utils.format_date(date_format, week_start) .. ".md"
+    return notes_dir .. "/" .. filename
+  else
+    date_format = date_format or config.get("date_format")
+    local filename = utils.format_date(date_format, nil) .. ".md"
+    return notes_dir .. "/" .. filename
+  end
 end
 
---- Get the path for a specific date's daily note
+--- Get the path for a specific date's note
 ---@param timestamp number Unix timestamp
 ---@param date_format string|nil Custom date format
 ---@return string
 function M.get_daily_note_path_for_date(timestamp, date_format)
-  date_format = date_format or config.get("date_format")
+  local note_type = config.get("note_type") or "weekly"
   local notes_dir = utils.expand_path(config.get("notes_dir"))
-  local filename = utils.format_date(date_format, timestamp) .. ".md"
-  return notes_dir .. "/" .. filename
+  
+  if note_type == "weekly" then
+    date_format = date_format or config.get("week_format")
+    local week_start = utils.get_week_start(timestamp)
+    local filename = utils.format_date(date_format, week_start) .. ".md"
+    return notes_dir .. "/" .. filename
+  else
+    date_format = date_format or config.get("date_format")
+    local filename = utils.format_date(date_format, timestamp) .. ".md"
+    return notes_dir .. "/" .. filename
+  end
 end
 
 --- Create a new daily note with template
@@ -30,9 +48,23 @@ end
 ---@return string|nil error
 function M.create_daily_note(path)
   local template = config.get("template")
-  local header_date_format = config.get("header_date_format")
-  local date_str = utils.format_date(header_date_format, nil)
+  local note_type = config.get("note_type") or "weekly"
   local now = os.time()
+  local date_str
+  
+  -- Generate appropriate date string based on note type
+  if note_type == "weekly" then
+    local week_header_format = config.get("week_header_format")
+    local week_start = utils.get_week_start(now)
+    date_str = utils.format_date(week_header_format, week_start)
+    
+    -- Also add week range
+    local week_range = utils.format_week_range(now)
+    date_str = date_str .. " (" .. week_range .. ")"
+  else
+    local header_date_format = config.get("header_date_format")
+    date_str = utils.format_date(header_date_format, nil)
+  end
   
   -- Replace template placeholders
   local content = template:gsub("{date}", date_str)
@@ -83,6 +115,7 @@ function M.open_daily_note(opts)
   opts = opts or {}
   local path = M.get_daily_note_path()
   local is_new = not utils.file_exists(path)
+  local note_type = config.get("note_type") or "weekly"
   
   -- Create the note if it doesn't exist
   if is_new then
@@ -91,7 +124,8 @@ function M.open_daily_note(opts)
       utils.error(err)
       return
     end
-    utils.info("Created new daily note")
+    local note_type_name = note_type == "weekly" and "weekly note" or "daily note"
+    utils.info("Created new " .. note_type_name)
   end
   
   -- Open the file
