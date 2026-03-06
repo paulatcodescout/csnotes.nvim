@@ -73,6 +73,52 @@ function M.get_files(dir, pattern)
   return files
 end
 
+--- Get all files in a directory recursively
+---@param dir string
+---@param pattern string|nil
+---@return table Array of {path: string, filename: string, relative_path: string}
+function M.get_files_recursive(dir, pattern)
+  local files = {}
+  local base_dir = M.expand_path(dir)
+  
+  local function scan_dir(current_dir, relative_prefix)
+    local handle = vim.loop.fs_scandir(current_dir)
+    if not handle then
+      return
+    end
+    
+    while true do
+      local name, type = vim.loop.fs_scandir_next(handle)
+      if not name then break end
+      
+      local full_path = current_dir .. "/" .. name
+      local relative_path = relative_prefix and (relative_prefix .. "/" .. name) or name
+      
+      if type == 'directory' then
+        -- Recursively scan subdirectories
+        scan_dir(full_path, relative_path)
+      elseif type == 'file' then
+        if not pattern or name:match(pattern) then
+          table.insert(files, {
+            path = full_path,
+            filename = name,
+            relative_path = relative_path,
+          })
+        end
+      end
+    end
+  end
+  
+  scan_dir(base_dir, nil)
+  
+  -- Sort by relative path
+  table.sort(files, function(a, b) 
+    return a.relative_path < b.relative_path
+  end)
+  
+  return files
+end
+
 --- Format a date according to a format string
 ---@param format string strftime format
 ---@param time number|nil Unix timestamp (defaults to current time)

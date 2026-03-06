@@ -15,6 +15,7 @@ local daily = require("csnotes.daily")
 local tags = require("csnotes.tags")
 local archive = require("csnotes.archive")
 local config = require("csnotes.config")
+local utils = require("csnotes.utils")
 
 local M = {}
 
@@ -224,6 +225,102 @@ local function archived_notes(opts)
   }):find()
 end
 
+--- Get all notes from daily and general directories (including subdirectories)
+---@return table Array of {path: string, filename: string, relative_path: string, source: string}
+local function get_all_notes_recursive()
+  local all_notes = {}
+  
+  -- Get daily notes
+  local daily_dir = utils.expand_path(config.get("notes_dir"))
+  if utils.dir_exists(daily_dir) then
+    local daily_files = utils.get_files_recursive(daily_dir, "%.md$")
+    for _, file in ipairs(daily_files) do
+      table.insert(all_notes, {
+        path = file.path,
+        filename = file.filename,
+        relative_path = file.relative_path,
+        source = "daily",
+      })
+    end
+  end
+  
+  -- Get general notes
+  local general_dir = utils.expand_path(config.get("general_notes_dir"))
+  if utils.dir_exists(general_dir) then
+    local general_files = utils.get_files_recursive(general_dir, "%.md$")
+    for _, file in ipairs(general_files) do
+      table.insert(all_notes, {
+        path = file.path,
+        filename = file.filename,
+        relative_path = file.relative_path,
+        source = "general",
+      })
+    end
+  end
+  
+  return all_notes
+end
+
+--- Create a telescope picker for inserting links
+local function insert_link(opts)
+  opts = opts or {}
+  local all_notes = get_all_notes_recursive()
+  
+  if #all_notes == 0 then
+    vim.notify("CSNotes: No notes found", vim.log.levels.WARN)
+    return
+  end
+  
+  local style = config.get("linking.style") or "wiki"
+  
+  pickers.new(opts, {
+    prompt_title = "Insert Link to Note",
+    finder = finders.new_table({
+      results = all_notes,
+      entry_maker = function(entry)
+        -- Display format: "relative/path/to/note.md (daily)"
+        local display_text = string.format("%s (%s)", entry.relative_path, entry.source)
+        
+        return {
+          value = entry,
+          display = display_text,
+          ordinal = entry.relative_path,
+          path = entry.path,
+        }
+      end,
+    }),
+    sorter = conf.generic_sorter(opts),
+    previewer = conf.file_previewer(opts),
+    attach_mappings = function(prompt_bufnr, map)
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        local selection = action_state.get_selected_entry()
+        
+        -- Get note name without extension
+        local note_name = selection.value.relative_path:match("^(.+)%.md$") or selection.value.relative_path
+        
+        -- Create link text based on style
+        local link_text
+        if style == "wiki" then
+          link_text = string.format("[[%s]]", note_name)
+        else
+          link_text = string.format("[%s](%s)", note_name, note_name .. ".md")
+        end
+        
+        -- Insert at cursor position
+        local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+        local line = vim.api.nvim_get_current_line()
+        local new_line = line:sub(1, col) .. link_text .. line:sub(col + 1)
+        vim.api.nvim_set_current_line(new_line)
+        
+        -- Move cursor after the link
+        vim.api.nvim_win_set_cursor(0, {row, col + #link_text})
+      end)
+      return true
+    end,
+  }):find()
+end
+
 return telescope.register_extension({
   setup = function(ext_config, user_config)
     -- Extension setup if needed
@@ -235,5 +332,6 @@ return telescope.register_extension({
     tags = tags_picker,
     by_tag = notes_by_tag,
     archive = archived_notes,
+    insert_link = insert_link,
   },
 })
