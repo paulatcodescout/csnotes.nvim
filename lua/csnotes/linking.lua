@@ -150,7 +150,7 @@ function M.show_backlinks()
 end
 
 --- Insert a link to another note
----@param note_name string|nil Name of note to link to (prompts if nil)
+---@param note_name string|nil Name of note to link to (prompts if nil, opens Telescope if available)
 function M.insert_link(note_name)
   if not config.get("linking.enabled") then
     utils.info("Linking is disabled")
@@ -159,7 +159,22 @@ function M.insert_link(note_name)
   
   local style = config.get("linking.style") or "wiki"
   
+  -- If note_name not provided, try to use Telescope picker
   if not note_name then
+    -- Check if Telescope is available
+    local has_telescope = pcall(require, "telescope")
+    if has_telescope then
+      -- Use Telescope extension for inserting links
+      local ok = pcall(function()
+        require("telescope").extensions.csnotes.insert_link()
+      end)
+      if ok then
+        return
+      end
+      -- If Telescope extension call fails, fall back to vim.ui.input
+    end
+    
+    -- Fall back to simple input prompt
     vim.ui.input({ prompt = "Link to note: " }, function(input)
       if input and input ~= "" then
         M.insert_link(input)

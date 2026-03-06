@@ -141,4 +141,45 @@ describe("utils", function()
       assert.is_not_nil(range:match("2026"))
     end)
   end)
+  
+  describe("get_files_recursive", function()
+    it("should return an empty table for non-existent directory", function()
+      local files = utils.get_files_recursive("/nonexistent/directory", "%.md$")
+      assert.are.same({}, files)
+    end)
+    
+    it("should have correct structure for returned files", function()
+      -- Create a temporary directory structure for testing
+      local temp_dir = os.tmpname()
+      os.remove(temp_dir)
+      utils.mkdir_p(temp_dir)
+      utils.mkdir_p(temp_dir .. "/subdir")
+      
+      -- Create test files
+      utils.write_file(temp_dir .. "/file1.md", "test content")
+      utils.write_file(temp_dir .. "/file2.md", "test content")
+      utils.write_file(temp_dir .. "/subdir/file3.md", "test content")
+      utils.write_file(temp_dir .. "/other.txt", "should not match")
+      
+      local files = utils.get_files_recursive(temp_dir, "%.md$")
+      
+      -- Should return 3 markdown files
+      assert.equals(3, #files)
+      
+      -- Check structure of returned objects
+      for _, file in ipairs(files) do
+        assert.is_not_nil(file.path)
+        assert.is_not_nil(file.filename)
+        assert.is_not_nil(file.relative_path)
+      end
+      
+      -- Clean up
+      os.remove(temp_dir .. "/file1.md")
+      os.remove(temp_dir .. "/file2.md")
+      os.remove(temp_dir .. "/subdir/file3.md")
+      os.remove(temp_dir .. "/other.txt")
+      os.remove(temp_dir .. "/subdir")
+      os.remove(temp_dir)
+    end)
+  end)
 end)
