@@ -244,5 +244,17 @@ vim.defer_fn(function()
         csnotes.toggle_task()
       end, { desc = "Toggle task completion", buffer = false })
     end
+    
+    if mappings.follow_link then
+      vim.keymap.set("n", mappings.follow_link, function()
+        csnotes.follow_link()
+      end, { desc = "Follow link under cursor" })
+    end
+    
+    if mappings.insert_link then
+      vim.keymap.set("n", mappings.insert_link, function()
+        csnotes.insert_link()
+      end, { desc = "Insert link to note" })
+    end
   end
 end, 0)

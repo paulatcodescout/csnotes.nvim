@@ -51,6 +51,8 @@ M.defaults = {
     search_notes = "<leader>ns",
     archive_old = "<leader>na",
     toggle_task = "<leader>nx",
+    follow_link = "gf",
+    insert_link = "<leader>ni",
   },
   
   -- Telescope configuration
