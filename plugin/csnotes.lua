@@ -256,5 +256,11 @@ vim.defer_fn(function()
         csnotes.insert_link()
       end, { desc = "Insert link to note" })
     end
+    
+    if mappings.show_backlinks then
+      vim.keymap.set("n", mappings.show_backlinks, function()
+        csnotes.show_backlinks()
+      end, { desc = "Show backlinks to current note" })
+    end
   end
 end, 0)
