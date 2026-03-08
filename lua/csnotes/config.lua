@@ -53,6 +53,7 @@ M.defaults = {
     toggle_task = "<leader>nx",
     follow_link = "gf",
     insert_link = "<leader>ni",
+    show_backlinks = "<leader>nb",
   },
   
   -- Telescope configuration
